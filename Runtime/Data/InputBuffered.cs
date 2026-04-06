@@ -3,14 +3,6 @@ using Unity.Mathematics;
 
 namespace PlayerInputs.Data
 {
-    // Utility to ensure identical hashing between Authoring and Runtime
-    public static class InputUtility
-    {
-        public static int GetActionID(string actionName)
-        {
-            return new Unity.Collections.FixedString32Bytes(actionName).GetHashCode();
-        }
-    }
 
     [InternalBufferCapacity(8)]
     public struct InputButtonDownBuffer : IBufferElementData

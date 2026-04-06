@@ -15,8 +15,9 @@ namespace PlayerInputs.Authoring
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
 
                 AddComponent(entity, new ECSPlayerInputID { ID = authoring.PlayerID });
+                AddComponent<PlayerInputRegisteredTag>(entity);
 
-                // Add the gameplay buffers
+                AddBuffer<InputHistoryBuffer>(entity);
                 AddBuffer<InputButtonDownBuffer>(entity);
                 AddBuffer<InputButtonHeldBuffer>(entity);
                 AddBuffer<InputButtonUpBuffer>(entity);

@@ -1,6 +1,4 @@
 using PlayerInputs.Data;
-using Unity.Burst;
-using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -9,54 +7,58 @@ namespace PlayerInputs.Systems
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct PlayerInputPropagationSystem : ISystem
     {
-        [BurstCompile]
+        private EntityQuery _backingQuery;
+
         public void OnCreate(ref SystemState state)
         {
+            _backingQuery = state.GetEntityQuery(
+                ComponentType.ReadWrite<InputSubscribedEntity>(),
+                ComponentType.ReadWrite<InputButtonDownBuffer>(),
+                ComponentType.ReadWrite<InputButtonHeldBuffer>(),
+                ComponentType.ReadWrite<InputButtonUpBuffer>(),
+                ComponentType.ReadWrite<InputAxisBuffer>(),
+                typeof(BackingInputEntityTag));
+
             state.RequireForUpdate<BackingInputEntityTag>();
         }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var job = new PropagateBuffersJob
+            var em = state.EntityManager;
+            using var backingEntities = _backingQuery.ToEntityArray(Allocator.Temp);
+
+            for (int i = 0; i < backingEntities.Length; i++)
             {
-                DownLookup = SystemAPI.GetBufferLookup<InputButtonDownBuffer>(false),
-                HeldLookup = SystemAPI.GetBufferLookup<InputButtonHeldBuffer>(false),
-                UpLookup = SystemAPI.GetBufferLookup<InputButtonUpBuffer>(false),
-                AxisLookup = SystemAPI.GetBufferLookup<InputAxisBuffer>(false)
-            };
+                var backing = backingEntities[i];
+                var subscribers = em.GetBuffer<InputSubscribedEntity>(backing);
 
-            state.Dependency = job.ScheduleParallel(state.Dependency);
-        }
+                if (subscribers.Length == 0) continue;
 
-        [BurstCompile]
-        [WithAll(typeof(BackingInputEntityTag))]
-        private partial struct PropagateBuffersJob : IJobEntity
-        {
-            [NativeDisableParallelForRestriction] public BufferLookup<InputButtonDownBuffer> DownLookup;
-            [NativeDisableParallelForRestriction] public BufferLookup<InputButtonHeldBuffer> HeldLookup;
-            [NativeDisableParallelForRestriction] public BufferLookup<InputButtonUpBuffer> UpLookup;
-            [NativeDisableParallelForRestriction] public BufferLookup<InputAxisBuffer> AxisLookup;
+                var masterDowns = em.GetBuffer<InputButtonDownBuffer>(backing).ToNativeArray(Allocator.Temp);
+                var masterHelds = em.GetBuffer<InputButtonHeldBuffer>(backing).ToNativeArray(Allocator.Temp);
+                var masterUps = em.GetBuffer<InputButtonUpBuffer>(backing).ToNativeArray(Allocator.Temp);
+                var masterAxes = em.GetBuffer<InputAxisBuffer>(backing).ToNativeArray(Allocator.Temp);
 
-            private void Execute(
-                in DynamicBuffer<InputSubscribedEntity> subscribers,
-                in DynamicBuffer<InputButtonDownBuffer> masterDowns,
-                in DynamicBuffer<InputButtonHeldBuffer> masterHelds,
-                in DynamicBuffer<InputButtonUpBuffer> masterUps,
-                in DynamicBuffer<InputAxisBuffer> masterAxes)
-            {
-                for (int i = 0; i < subscribers.Length; i++)
+                for (int j = 0; j < subscribers.Length; j++)
                 {
-                    var target = subscribers[i].Value;
+                    var target = subscribers[j].Value;
+                    if (!em.HasBuffer<InputButtonDownBuffer>(target)) continue;
 
-                    if (!DownLookup.HasBuffer(target)) continue;
+                    var targetDowns = em.GetBuffer<InputButtonDownBuffer>(target);
+                    var targetHelds = em.GetBuffer<InputButtonHeldBuffer>(target);
+                    var targetUps = em.GetBuffer<InputButtonUpBuffer>(target);
+                    var targetAxes = em.GetBuffer<InputAxisBuffer>(target);
 
-                    // O(n) unrolled memory copy. Extremely fast.
-                    DownLookup[target].CopyFrom(masterDowns);
-                    HeldLookup[target].CopyFrom(masterHelds);
-                    UpLookup[target].CopyFrom(masterUps);
-                    AxisLookup[target].CopyFrom(masterAxes);
+                    targetDowns.CopyFrom(masterDowns);
+                    targetHelds.CopyFrom(masterHelds);
+                    targetUps.CopyFrom(masterUps);
+                    targetAxes.CopyFrom(masterAxes);
                 }
+
+                masterDowns.Dispose();
+                masterHelds.Dispose();
+                masterUps.Dispose();
+                masterAxes.Dispose();
             }
         }
     }

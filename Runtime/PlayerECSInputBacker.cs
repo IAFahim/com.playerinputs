@@ -23,19 +23,35 @@ namespace PlayerInputs
             public InputAction Action;
         }
 
-        public byte PlayerID;
+        [Tooltip("Overrides the playerIndex from PlayerInput. Leave at -1 to auto-read from PlayerInput.playerIndex.")]
+        public int PlayerID = -1;
+
+        [Tooltip("If true, this bridge will also create a consumer entity with input buffers that mirrors the backing entity data.")]
+        public bool CreateConsumerEntity = false;
 
         private EntityManager _entityManager;
         private Entity _backingEntity;
+        private Entity _consumerEntity;
         private readonly List<CachedButton> _buttons = new();
         private readonly List<CachedAxis> _axes = new();
+
+        private byte ResolvedPlayerID
+        {
+            get
+            {
+                if (PlayerID >= 0) return (byte)PlayerID;
+                var pi = GetComponent<PlayerInput>();
+                return (byte)(pi != null ? pi.playerIndex : 0);
+            }
+        }
 
         private void Start()
         {
             var playerInput = GetComponent<PlayerInput>();
             if (playerInput.actions == null) return;
 
-            // 1. Dynamically read ALL actions in the asset
+            byte pid = ResolvedPlayerID;
+
             foreach (var action in playerInput.actions)
             {
                 int actionID = InputUtility.GetActionID(action.name);
@@ -52,7 +68,6 @@ namespace PlayerInputs
 
             _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
-            // 2. Create the backing entity with our dynamic buffers
             var archetype = _entityManager.CreateArchetype(
                 typeof(BackingInputEntityTag),
                 typeof(ECSPlayerInputID),
@@ -64,14 +79,30 @@ namespace PlayerInputs
             );
 
             _backingEntity = _entityManager.CreateEntity(archetype);
-            _entityManager.SetComponentData(_backingEntity, new ECSPlayerInputID { ID = PlayerID });
+            _entityManager.SetComponentData(_backingEntity, new ECSPlayerInputID { ID = pid });
+
+            if (CreateConsumerEntity)
+            {
+                var consumerArchetype = _entityManager.CreateArchetype(
+                    typeof(ECSPlayerInputID),
+                    typeof(InputButtonDownBuffer),
+                    typeof(InputButtonHeldBuffer),
+                    typeof(InputButtonUpBuffer),
+                    typeof(InputAxisBuffer)
+                );
+
+                _consumerEntity = _entityManager.CreateEntity(consumerArchetype);
+                _entityManager.SetComponentData(_consumerEntity, new ECSPlayerInputID { ID = pid });
+
+                var subBuffer = _entityManager.GetBuffer<InputSubscribedEntity>(_backingEntity);
+                subBuffer.Add(new InputSubscribedEntity { Value = _consumerEntity });
+            }
         }
 
         private void Update()
         {
             if (!_entityManager.Exists(_backingEntity)) return;
 
-            // 1. Get and clear buffers (O(1) memory clear, no allocations)
             var downs = _entityManager.GetBuffer<InputButtonDownBuffer>(_backingEntity);
             var helds = _entityManager.GetBuffer<InputButtonHeldBuffer>(_backingEntity);
             var ups = _entityManager.GetBuffer<InputButtonUpBuffer>(_backingEntity);
@@ -82,7 +113,6 @@ namespace PlayerInputs
             ups.Clear();
             axes.Clear();
 
-            // 2. Populate Buttons
             foreach (var btn in _buttons)
             {
                 if (btn.Action.WasPressedThisFrame())
@@ -95,7 +125,6 @@ namespace PlayerInputs
                     ups.Add(new InputButtonUpBuffer { ActionID = btn.ID });
             }
 
-            // 3. Populate Axes (Vector2 and 1D Floats)
             foreach (var axis in _axes)
             {
                 float2 val = float2.zero;
@@ -114,10 +143,12 @@ namespace PlayerInputs
         {
             if (World.DefaultGameObjectInjectionWorld != null &&
                 World.DefaultGameObjectInjectionWorld.IsCreated &&
-                _entityManager != default &&
-                _entityManager.Exists(_backingEntity))
+                _entityManager != default)
             {
-                _entityManager.DestroyEntity(_backingEntity);
+                if (_entityManager.Exists(_consumerEntity))
+                    _entityManager.DestroyEntity(_consumerEntity);
+                if (_entityManager.Exists(_backingEntity))
+                    _entityManager.DestroyEntity(_backingEntity);
             }
         }
     }
