@@ -1,4 +1,3 @@
-// Runtime/Data/PlayerInputComponent.cs
 using Unity.Entities;
 
 namespace PlayerInputs.Data
@@ -15,8 +14,6 @@ namespace PlayerInputs.Data
     {
         public Entity Provider;
     }
-
-    // --- New Registry & Event Primitives ---
 
     public struct PlayerInputRegistryTag : IComponentData { }
 

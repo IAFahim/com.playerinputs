@@ -23,15 +23,12 @@ namespace PlayerInputs.Data
         [SerializeField]
         private InputMapping[] mappings = Array.Empty<InputMapping>();
 
-        // Fulfills KSettingsBase: Automatically registers these into the K dropdown system
         public override IEnumerable<NameValue<byte>> Keys
         {
             get
             {
                 foreach (var mapping in mappings)
                 {
-                    // Dynamically grab the name straight from the Unity Input Action!
-                    // Fallback to an error string if the user forgot to assign the reference.
                     string actionName = mapping.Action != null && mapping.Action.action != null 
                         ? mapping.Action.action.name 
                         : $"[Unassigned Action ID: {mapping.Value}]";
@@ -41,7 +38,6 @@ namespace PlayerInputs.Data
             }
         }
 
-        // Expose the raw mappings for the runtime bridge to read
         public IReadOnlyList<InputMapping> Mappings => mappings;
     }
 }

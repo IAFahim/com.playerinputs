@@ -26,7 +26,6 @@ namespace PlayerInputs.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Ensure single immutable-by-default truth exists
             if (!SystemAPI.TryGetSingletonEntity<PlayerInputRegistryTag>(out var registryEntity))
             {
                 registryEntity = state.EntityManager.CreateEntity();
@@ -49,7 +48,6 @@ namespace PlayerInputs.Systems
             joinedBuffer.Clear();
             leftBuffer.Clear();
 
-            // Detect Joins
             foreach (var kvp in currentProviders)
             {
                 if (!_previousProviders.ContainsKey(kvp.Key))
@@ -58,7 +56,6 @@ namespace PlayerInputs.Systems
                 }
             }
 
-            // Detect Leaves
             foreach (var kvp in _previousProviders)
             {
                 if (!currentProviders.ContainsKey(kvp.Key))
@@ -67,14 +64,12 @@ namespace PlayerInputs.Systems
                 }
             }
 
-            // Swap States
             _previousProviders.Clear();
             foreach (var kvp in currentProviders)
             {
                 _previousProviders.Add(kvp.Key, kvp.Value);
             }
 
-            // Update Link Buffer
             var linkBuffer = SystemAPI.GetBuffer<PlayerInputLink>(registryEntity);
             linkBuffer.Clear();
             foreach (var kvp in currentProviders)

@@ -1,4 +1,3 @@
-// Runtime/Systems/PlayerInputSubscriptionSystem.cs
 using BovineLabs.Core.Groups;
 using PlayerInputs.Data;
 using Unity.Burst;
@@ -44,7 +43,6 @@ namespace PlayerInputs.Systems
 
             private void Execute(in PlayerId id, ref InputSource source)
             {
-                // Disconnects provider automatically if the map no longer has the ID
                 if (ProvidersMap.TryGetValue(id.Value, out var providerEntity))
                 {
                     source.Provider = providerEntity;

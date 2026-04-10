@@ -6,10 +6,6 @@ using UnityEngine.InputSystem;
 
 namespace PlayerInputs
 {
-    /// <summary>
-    /// Managed component bridge that automatically binds Unity Input System events 
-    /// based on the global InputKeys settings.
-    /// </summary>
     [RequireComponent(typeof(PlayerInput))]
     public class PlayerInputBridge : MonoBehaviour
     {
@@ -27,7 +23,6 @@ namespace PlayerInputs
             var playerInput = GetComponent<PlayerInput>();
             if (playerInput.actions == null) return;
 
-            // Automatically pull mappings from the global InputKeys settings
             var inputKeys = InputKeys.I;
             if (inputKeys != null)
             {
@@ -35,12 +30,9 @@ namespace PlayerInputs
                 {
                     if (mapping.Action == null) continue;
 
-                    // Find the localized action instance for this specific player's PlayerInput
-                    // We use the action's GUID to ensure a 100% accurate match
                     var action = playerInput.actions.FindAction(mapping.Action.action.id);
                     if (action == null) continue;
 
-                    // Auto-categorize into Buttons vs Axes based on the Input Action's type
                     if (action.type == InputActionType.Button)
                     {
                         Buttons.Add((mapping.Value, action));
@@ -52,14 +44,12 @@ namespace PlayerInputs
                 }
             }
 
-            // Create the ECS Entity dynamically
             _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             _providerEntity = _entityManager.CreateEntity();
 
             _entityManager.AddComponentData(_providerEntity, new PlayerId { Value = GetPlayerId() });
             _entityManager.AddComponent<InputProviderTag>(_providerEntity);
-            
-            // Allow the ECS Poll System to read this MonoBehaviour
+
             _entityManager.AddComponentObject(_providerEntity, new PlayerInputBridgeComponent { Value = this });
 
             _entityManager.AddBuffer<InputButtonDownBuffer>(_providerEntity);

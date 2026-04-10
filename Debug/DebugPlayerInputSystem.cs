@@ -25,7 +25,7 @@ namespace PlayerInputs.Debug
         }
 
         [BurstCompile]
-        [WithAll(typeof(InputProviderTag))] // Changed to Provider so we can see raw inputs immediately!
+        [WithAll(typeof(InputProviderTag))]
         private partial struct DebugDrawInputJob : IJobEntity
         {
             public Drawer Drawer;
@@ -39,7 +39,6 @@ namespace PlayerInputs.Debug
             {
                 if (axes.Length == 0 && downs.Length == 0 && helds.Length == 0 && ups.Length == 0) return;
 
-                // Offset the text based on Player ID so they don't overlap if 2 players join
                 float3 headPos = new float3(id.Value * 2f, 2.2f, 0);
 
                 Drawer.Line(new float3(id.Value * 2f, 0, 0), headPos, new Color(1f, 1f, 1f, 0.2f));

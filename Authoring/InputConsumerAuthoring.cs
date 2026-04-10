@@ -18,8 +18,6 @@ namespace PlayerInputs.Authoring
                 AddComponent(entity, new PlayerId { Value = authoring.PlayerId });
                 AddComponent<InputConsumerTag>(entity);
                 AddComponent(entity, new InputSource { Provider = Entity.Null });
-                
-                // DELETED: Buffer additions. Consumers just hold the reference.
             }
         }
     }
