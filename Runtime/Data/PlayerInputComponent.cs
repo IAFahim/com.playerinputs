@@ -17,21 +17,18 @@ namespace PlayerInputs.Data
 
     public struct PlayerInputRegistryTag : IComponentData { }
 
-    [InternalBufferCapacity(16)]
     public struct PlayerInputLink : IBufferElementData
     {
         public byte PlayerId;
         public Entity Provider;
     }
 
-    [InternalBufferCapacity(4)]
     public struct PlayerJoinedEventBuffer : IBufferElementData
     {
         public byte PlayerId;
         public Entity Provider;
     }
 
-    [InternalBufferCapacity(4)]
     public struct PlayerLeftEventBuffer : IBufferElementData
     {
         public byte PlayerId;

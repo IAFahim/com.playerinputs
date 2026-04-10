@@ -1,6 +1,6 @@
 {
     "name": "PlayerInputs.Debug",
-    "rootNamespace": "PlayerInputs.Debug",
+    "rootNamespace": "",
     "references": [
         "BovineLabs.Core",
         "BovineLabs.Core.Extensions",
@@ -10,7 +10,8 @@
         "Unity.Collections",
         "Unity.Entities",
         "Unity.Mathematics",
-        "Unity.Transforms"
+        "Unity.Transforms",
+        "PlayerInputs.Authoring"
     ],
     "includePlatforms": [
         "Editor"

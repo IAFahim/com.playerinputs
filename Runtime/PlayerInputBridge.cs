@@ -3,6 +3,7 @@ using PlayerInputs.Data;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace PlayerInputs
 {
@@ -10,7 +11,7 @@ namespace PlayerInputs
     public class PlayerInputBridge : MonoBehaviour
     {
         [Tooltip("Overrides the player index from PlayerInput. Leave at -1 to auto-read.")]
-        public int PlayerIdOverride = -1;
+        public int playerIdOverride = -1;
 
         internal readonly List<(byte Id, InputAction Action)> Buttons = new();
         internal readonly List<(byte Id, InputAction Action)> Axes = new();
@@ -33,13 +34,14 @@ namespace PlayerInputs
                     var action = playerInput.actions.FindAction(mapping.Action.action.id);
                     if (action == null) continue;
 
-                    if (action.type == InputActionType.Button)
+                    switch (action.type)
                     {
-                        Buttons.Add((mapping.Value, action));
-                    }
-                    else if (action.type == InputActionType.Value)
-                    {
-                        Axes.Add((mapping.Value, action));
+                        case InputActionType.Button:
+                            Buttons.Add((mapping.Value, action));
+                            break;
+                        case InputActionType.Value:
+                            Axes.Add((mapping.Value, action));
+                            break;
                     }
                 }
             }
@@ -71,7 +73,7 @@ namespace PlayerInputs
 
         public byte GetPlayerId()
         {
-            if (PlayerIdOverride >= 0) return (byte)PlayerIdOverride;
+            if (playerIdOverride >= 0) return (byte)playerIdOverride;
             var pi = GetComponent<PlayerInput>();
             return (byte)(pi != null ? pi.playerIndex : 0);
         }

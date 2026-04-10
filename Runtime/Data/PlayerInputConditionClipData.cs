@@ -3,9 +3,9 @@ using Unity.Entities;
 
 namespace BovineLabs.Timeline.Tracks.Data.PlayerInputs
 {
-    public struct PlayerInputConditionValue : IComponentData
+    public struct PlayerInputConditionBuffer : IBufferElementData
     {
-        public byte RequiredActionId;
         public ConditionKey ConditionKey;
+        public int Value;
     }
 }
