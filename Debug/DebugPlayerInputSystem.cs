@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || BL_DEBUG
 using BovineLabs.Core;
 using BovineLabs.Quill;
 using PlayerInputs.Data;
@@ -14,79 +15,143 @@ namespace PlayerInputs.Debug
     public partial struct DebugPlayerInputSystem : ISystem
     {
         [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<DrawSystem.Singleton>();
+        }
+
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
+            var renderer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
 
-            state.Dependency = new DebugDrawInputJob
+            var chronos = (uint)(SystemAPI.Time.ElapsedTime * 1000.0);
+
+            state.Dependency = new RenderInputDiagnostics
             {
-                Drawer = drawer,
+                Renderer = renderer,
+                Chronos = chronos
             }.Schedule(state.Dependency);
         }
 
         [BurstCompile]
         [WithAll(typeof(InputProviderTag))]
-        private partial struct DebugDrawInputJob : IJobEntity
+        private partial struct RenderInputDiagnostics : IJobEntity
         {
-            public Drawer Drawer;
+            public Drawer Renderer;
+            public uint Chronos;
 
             private void Execute(
                 in PlayerId id,
+                in InputState state,
                 in DynamicBuffer<InputAxisBuffer> axes,
-                in DynamicBuffer<InputButtonDownBuffer> downs,
-                in DynamicBuffer<InputButtonHeldBuffer> helds,
-                in DynamicBuffer<InputButtonUpBuffer> ups)
+                in DynamicBuffer<InputHistory> history)
             {
-                if (axes.Length == 0 && downs.Length == 0 && helds.Length == 0 && ups.Length == 0) return;
+                var origin = new float3(id.Value * 4f, 2f, 0f);
 
-                float3 headPos = new float3(id.Value * 2f, 2.2f, 0);
+                this.RenderHeader(origin, id);
+                this.RenderTelemetry(origin + new float3(-1.5f, -0.5f, 0f), state);
+                this.RenderKinetics(origin + new float3(0f, -1.0f, 0f), axes);
+                this.RenderChronology(origin + new float3(1.5f, -0.5f, 0f), history, this.Chronos);
+            }
 
-                Drawer.Line(new float3(id.Value * 2f, 0, 0), headPos, new Color(1f, 1f, 1f, 0.2f));
+            private void RenderHeader(float3 position, PlayerId id)
+            {
+                var label = new FixedString32Bytes();
+                label.Append("INTERFACE 0");
+                label.Append(id.Value);
 
-                FixedString512Bytes text = new FixedString512Bytes();
+                this.Renderer.Text32(position, label, Color.white, 16f);
+                this.Renderer.Line(position + new float3(-2f, -0.2f, 0f), position + new float3(2f, -0.2f, 0f), new Color(1f, 1f, 1f, 0.2f));
+            }
 
-                text.Append("[Player ");
-                text.Append(id.Value);
-                text.Append("]\n");
-
-                if (axes.Length > 0)
+            private void RenderTelemetry(float3 position, InputState state)
+            {
+                var cursor = position;
+                
+                for (byte i = 0; i < 255; i++)
                 {
-                    text.Append("Axes: ");
-                    for (int i = 0; i < axes.Length; i++)
+                    if (state.Down.Has(i))
                     {
-                        text.Append(InputKeys.KeyToName(axes[i].ActionId));
-                        text.Append("(");
-                        text.Append(((int)(axes[i].Value.x * 10)) / 10f);
-                        text.Append(", ");
-                        text.Append(((int)(axes[i].Value.y * 10)) / 10f);
-                        text.Append(") ");
+                        this.RenderSignal(cursor, i, "D", new Color(0f, 1f, 1f, 1f));
+                        cursor.y -= 0.15f;
                     }
-                    text.Append("\n");
+                    else if (state.Held.Has(i))
+                    {
+                        this.RenderSignal(cursor, i, "H", new Color(0f, 1f, 0.5f, 1f));
+                        cursor.y -= 0.15f;
+                    }
+                    else if (state.Up.Has(i))
+                    {
+                        this.RenderSignal(cursor, i, "U", new Color(1f, 0.2f, 0.2f, 1f));
+                        cursor.y -= 0.15f;
+                    }
                 }
+            }
 
-                if (downs.Length > 0)
+            private void RenderSignal(float3 position, byte action, FixedString32Bytes phase, Color tint)
+            {
+                var format = new FixedString64Bytes();
+                format.Append("[");
+                format.Append(phase);
+                format.Append("] ");
+                format.Append(InputKeys.KeyToName(action));
+
+                this.Renderer.Text64(position, format, tint, 12f);
+            }
+
+            private void RenderKinetics(float3 position, DynamicBuffer<InputAxisBuffer> axes)
+            {
+                var cursor = position;
+                
+                for (var i = 0; i < axes.Length; i++)
                 {
-                    text.Append("Down: ");
-                    for (int i = 0; i < downs.Length; i++) { text.Append(InputKeys.KeyToName(downs[i].ActionId)); text.Append(" "); }
-                    text.Append("\n");
-                }
+                    var axis = axes[i];
+                    var boundary = new float3(0f, 0f, 1f) * 0.25f;
+                    var vector = new float3(axis.Value.x, axis.Value.y, 0f) * 0.25f;
 
-                if (helds.Length > 0)
+                    this.Renderer.Circle(cursor, boundary, new Color(1f, 1f, 1f, 0.1f));
+                    this.Renderer.Line(cursor, cursor + vector, new Color(0f, 1f, 1f, 1f));
+                    this.Renderer.Point(cursor + vector, 0.05f, new Color(0f, 1f, 1f, 1f));
+
+                    var label = new FixedString64Bytes();
+                    label.Append(InputKeys.KeyToName(axis.ActionId));
+                    
+                    this.Renderer.Text64(cursor + new float3(0f, 0.35f, 0f), label, new Color(1f, 1f, 1f, 0.5f), 10f);
+
+                    cursor.y -= 0.8f;
+                }
+            }
+
+            private void RenderChronology(float3 position, DynamicBuffer<InputHistory> history, uint chronos)
+            {
+                var cursor = position;
+                var limit = math.max(0, history.Length - 16);
+
+                for (var i = history.Length - 1; i >= limit; i--)
                 {
-                    text.Append("Held: ");
-                    for (int i = 0; i < helds.Length; i++) { text.Append(InputKeys.KeyToName(helds[i].ActionId)); text.Append(" "); }
-                    text.Append("\n");
-                }
+                    var record = history[i];
+                    var delta = chronos - record.Tick;
+                    
+                    if (delta > 2000)
+                    {
+                        continue;
+                    }
 
-                if (ups.Length > 0)
-                {
-                    text.Append("Up: ");
-                    for (int i = 0; i < ups.Length; i++) { text.Append(InputKeys.KeyToName(ups[i].ActionId)); text.Append(" "); }
-                    text.Append("\n");
-                }
+                    var opacity = math.clamp(1f - (delta / 2000f), 0f, 1f);
+                    var tint = new Color(1f, 1f, 1f, opacity);
 
-                Drawer.Text512(headPos, text, Color.white, 14f);
+                    var format = new FixedString64Bytes();
+                    format.Append("-");
+                    format.Append(delta);
+                    format.Append("ms ");
+                    format.Append(InputKeys.KeyToName(record.ActionId));
+
+                    this.Renderer.Text64(cursor, format, tint, 10f);
+                    cursor.y -= 0.15f;
+                }
             }
         }
     }
 }
+#endif

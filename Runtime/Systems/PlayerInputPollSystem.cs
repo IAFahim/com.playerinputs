@@ -2,7 +2,6 @@ using BovineLabs.Core.Groups;
 using PlayerInputs.Data;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace PlayerInputs.Systems
@@ -12,39 +11,46 @@ namespace PlayerInputs.Systems
     {
         protected override void OnUpdate()
         {
-            foreach (var (bridgeComp, downs, helds, ups, axes) in SystemAPI.Query<
-                PlayerInputBridgeComponent,
-                DynamicBuffer<InputButtonDownBuffer>,
-                DynamicBuffer<InputButtonHeldBuffer>,
-                DynamicBuffer<InputButtonUpBuffer>,
-                DynamicBuffer<InputAxisBuffer>>().WithAll<InputProviderTag>())
+            foreach (var (bridgeComp, state, axes) in SystemAPI.Query<PlayerInputBridgeComponent, RefRW<InputState>, DynamicBuffer<InputAxisBuffer>>().WithAll<InputProviderTag>())
             {
                 var bridge = bridgeComp.Value;
-                if (bridge == null) continue;
+                if (bridge == null)
+                {
+                    continue;
+                }
 
-                downs.Clear();
-                helds.Clear();
-                ups.Clear();
-                axes.Clear();
+                var down = new InputBitmask();
+                var held = new InputBitmask();
+                var up = new InputBitmask();
 
                 foreach (var btn in bridge.Buttons)
                 {
-                    if (btn.Action.WasPressedThisFrame())
-                        downs.Add(new InputButtonDownBuffer { ActionId = btn.Id });
-                    if (btn.Action.IsInProgress())
-                        helds.Add(new InputButtonHeldBuffer { ActionId = btn.Id });
-                    if (btn.Action.WasReleasedThisFrame())
-                        ups.Add(new InputButtonUpBuffer { ActionId = btn.Id });
+                    if (btn.Action.WasPressedThisFrame()) down.Set(btn.Id);
+                    if (btn.Action.IsInProgress()) held.Set(btn.Id);
+                    if (btn.Action.WasReleasedThisFrame()) up.Set(btn.Id);
                 }
+
+                state.ValueRW = new InputState
+                {
+                    Down = down,
+                    Held = held,
+                    Up = up
+                };
+
+                axes.Clear();
 
                 foreach (var axis in bridge.Axes)
                 {
-                    float2 val = float2.zero;
+                    var val = float2.zero;
+                    
                     if (axis.Action.expectedControlType == "Vector2")
-                        val = axis.Action.ReadValue<Vector2>();
-                    else if (axis.Action.expectedControlType == "Axis" ||
-                             axis.Action.expectedControlType == "Button")
+                    {
+                        val = axis.Action.ReadValue<UnityEngine.Vector2>();
+                    }
+                    else if (axis.Action.expectedControlType == "Axis" || axis.Action.expectedControlType == "Button")
+                    {
                         val.x = axis.Action.ReadValue<float>();
+                    }
 
                     if (math.lengthsq(val) > 0.0001f)
                     {
