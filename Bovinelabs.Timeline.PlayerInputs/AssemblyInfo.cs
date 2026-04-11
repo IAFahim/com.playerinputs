@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("PlayerInputs.Debug")]
-[assembly: InternalsVisibleTo("PlayerInputs.Editor")]
-[assembly: InternalsVisibleTo("PlayerInputs.Tests")]
+[assembly: InternalsVisibleTo("Bovinelabs.Timeline.PlayerInputs.Debug")]
+[assembly: InternalsVisibleTo("Bovinelabs.Timeline.PlayerInputs.Editor")]
+[assembly: InternalsVisibleTo("Bovinelabs.Timeline.PlayerInputs.Tests")]

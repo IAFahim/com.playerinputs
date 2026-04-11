@@ -1,6 +1,7 @@
+using System;
 using Unity.Entities;
 
-namespace PlayerInputs.Data
+namespace Bovinelabs.Timeline.PlayerInputs.Data
 {
     public struct InputState : IComponentData
     {
@@ -9,7 +10,7 @@ namespace PlayerInputs.Data
         public InputBitmask Up;
     }
 
-    public struct InputBitmask
+    public struct InputBitmask : IEquatable<InputBitmask>
     {
         public ulong Chunk0;
         public ulong Chunk1;
@@ -46,6 +47,34 @@ namespace PlayerInputs.Data
                    (this.Chunk1 & mask.Chunk1) == mask.Chunk1 &&
                    (this.Chunk2 & mask.Chunk2) == mask.Chunk2 &&
                    (this.Chunk3 & mask.Chunk3) == mask.Chunk3;
+        }
+
+        public readonly bool Overlaps(InputBitmask mask)
+        {
+            return (this.Chunk0 & mask.Chunk0) != 0 ||
+                   (this.Chunk1 & mask.Chunk1) != 0 ||
+                   (this.Chunk2 & mask.Chunk2) != 0 ||
+                   (this.Chunk3 & mask.Chunk3) != 0;
+        }
+
+        public bool Equals(InputBitmask other)
+        {
+            return this.Chunk0 == other.Chunk0 &&
+                   this.Chunk1 == other.Chunk1 &&
+                   this.Chunk2 == other.Chunk2 &&
+                   this.Chunk3 == other.Chunk3;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = this.Chunk0.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Chunk1.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Chunk2.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Chunk3.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace PlayerInputs.Data
+namespace Bovinelabs.Timeline.PlayerInputs.Data
 {
     [InternalBufferCapacity(32)]
     public struct InputHistory : IBufferElementData

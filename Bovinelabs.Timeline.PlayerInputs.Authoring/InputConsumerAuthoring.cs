@@ -1,8 +1,9 @@
-using PlayerInputs.Data;
+
+using Bovinelabs.Timeline.PlayerInputs.Data;
 using Unity.Entities;
 using UnityEngine;
 
-namespace PlayerInputs.Authoring
+namespace Bovinelabs.Timeline.PlayerInputs.Authoring
 {
     public class InputConsumerAuthoring : MonoBehaviour
     {

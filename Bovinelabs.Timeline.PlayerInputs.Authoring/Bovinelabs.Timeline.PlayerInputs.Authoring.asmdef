@@ -22,7 +22,7 @@
         "BovineLabs.Timeline.Authoring",
         "Unity.Timeline",
         "BovineLabs.Timeline.Core.Authoring",
-        "PlayerInputs"
+        "Bovinelabs.Timeline.PlayerInputs.Data"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

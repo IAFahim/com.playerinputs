@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace PlayerInputs.Data
+namespace Bovinelabs.Timeline.PlayerInputs.Data
 {
     public struct InputButtonDownBuffer : IBufferElementData
     {

@@ -20,7 +20,10 @@
         "Unity.Physics",
         "Unity.Transforms",
         "BovineLabs.Reaction.Data",
-        "BovineLabs.Reaction"
+        "BovineLabs.Reaction",
+        "Bovinelabs.Timeline.PlayerInputs.Data",
+        "BovineLabs.Timeline.Data",
+        "BovineLabs.Timeline"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

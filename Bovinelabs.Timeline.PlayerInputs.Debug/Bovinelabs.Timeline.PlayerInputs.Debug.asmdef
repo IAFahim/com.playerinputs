@@ -11,7 +11,8 @@
         "Unity.Entities",
         "Unity.Mathematics",
         "Unity.Transforms",
-        "PlayerInputs.Authoring"
+        "Bovinelabs.Timeline.PlayerInputs",
+        "Bovinelabs.Timeline.PlayerInputs.Data"
     ],
     "includePlatforms": [
         "Editor"

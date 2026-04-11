@@ -5,7 +5,7 @@ using BovineLabs.Core.Settings;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace PlayerInputs.Data
+namespace Bovinelabs.Timeline.PlayerInputs.Data
 {
     [SettingsGroup("Input")]
     public class InputKeys : KSettingsBase<InputKeys, byte>

@@ -1,10 +1,10 @@
 using BovineLabs.Core.Groups;
-using PlayerInputs.Data;
+using Bovinelabs.Timeline.PlayerInputs.Data;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace PlayerInputs.Systems
+namespace Bovinelabs.Timeline.PlayerInputs
 {
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     [UpdateAfter(typeof(PlayerInputRegistrySystem))]

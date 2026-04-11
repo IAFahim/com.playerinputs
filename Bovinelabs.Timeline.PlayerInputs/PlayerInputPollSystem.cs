@@ -1,10 +1,9 @@
 using BovineLabs.Core.Groups;
-using PlayerInputs.Data;
+using Bovinelabs.Timeline.PlayerInputs.Data;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine.InputSystem;
 
-namespace PlayerInputs.Systems
+namespace Bovinelabs.Timeline.PlayerInputs
 {
     [UpdateInGroup(typeof(BeginSimulationSystemGroup))]
     public partial class PlayerInputPollSystem : SystemBase

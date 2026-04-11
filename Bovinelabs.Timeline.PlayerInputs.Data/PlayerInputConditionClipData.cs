@@ -1,7 +1,7 @@
 using BovineLabs.Reaction.Data.Conditions;
 using Unity.Entities;
 
-namespace BovineLabs.Timeline.Tracks.Data.PlayerInputs
+namespace Bovinelabs.Timeline.PlayerInputs.Data
 {
     public struct PlayerInputConditionBuffer : IBufferElementData
     {

@@ -1,9 +1,9 @@
 using BovineLabs.Core.Groups;
-using PlayerInputs.Data;
+using Bovinelabs.Timeline.PlayerInputs.Data;
 using Unity.Burst;
 using Unity.Entities;
 
-namespace PlayerInputs.Systems
+namespace Bovinelabs.Timeline.PlayerInputs
 {
     [UpdateInGroup(typeof(BeginSimulationSystemGroup))]
     [UpdateAfter(typeof(PlayerInputPollSystem))]

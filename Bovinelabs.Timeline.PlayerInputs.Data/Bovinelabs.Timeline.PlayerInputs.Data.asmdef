@@ -2,8 +2,12 @@
     "name": "Bovinelabs.Timeline.PlayerInputs.Data",
     "rootNamespace": "",
     "references": [
+        "BovineLabs.Anchor",
         "BovineLabs.Core",
         "BovineLabs.Core.Extensions",
+        "Unity.AppUI",
+        "Unity.AppUI.MVVM",
+        "Unity.AppUI.Navigation",
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Entities",
@@ -14,7 +18,8 @@
         "Unity.Mathematics.Extensions",
         "Unity.Physics",
         "Unity.Transforms",
-        "BovineLabs.Reaction.Data"
+        "BovineLabs.Reaction.Data",
+        "BovineLabs.Reaction"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

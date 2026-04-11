@@ -3,5 +3,5 @@ using Unity.Entities;
 
 [assembly: DisableAutoTypeRegistration]
 
-[assembly: InternalsVisibleTo("PlayerInputs.Editor")]
-[assembly: InternalsVisibleTo("PlayerInputs.Tests")]
+[assembly: InternalsVisibleTo("Bovinelabs.Timeline.PlayerInputs.Editor")]
+[assembly: InternalsVisibleTo("Bovinelabs.Timeline.PlayerInputs.Tests")]

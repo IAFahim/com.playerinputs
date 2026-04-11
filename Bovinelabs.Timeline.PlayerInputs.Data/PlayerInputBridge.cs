@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using PlayerInputs.Data;
+
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace PlayerInputs
+namespace Bovinelabs.Timeline.PlayerInputs.Data
 {
     [RequireComponent(typeof(PlayerInput))]
     public sealed class PlayerInputBridge : MonoBehaviour

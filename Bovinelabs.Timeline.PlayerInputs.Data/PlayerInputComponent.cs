@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace PlayerInputs.Data
+namespace Bovinelabs.Timeline.PlayerInputs.Data
 {
     public struct PlayerId : IComponentData
     {

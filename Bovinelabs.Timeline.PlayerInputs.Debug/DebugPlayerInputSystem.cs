@@ -1,14 +1,14 @@
 #if UNITY_EDITOR || BL_DEBUG
 using BovineLabs.Core;
 using BovineLabs.Quill;
-using PlayerInputs.Data;
+using Bovinelabs.Timeline.PlayerInputs.Data;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace PlayerInputs.Debug
+namespace Bovinelabs.Timeline.PlayerInputs.Debug
 {
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ServerSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.Editor)]
     [UpdateInGroup(typeof(DebugSystemGroup))]
