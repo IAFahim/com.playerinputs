@@ -61,17 +61,14 @@ namespace Bovinelabs.Timeline.PlayerInputs
             this.entityManager = this.capturedWorld.EntityManager;
             this.providerEntity = this.entityManager.CreateEntity();
 
-            // Core Tags
             this.entityManager.AddComponentData(this.providerEntity, new PlayerId { Value = this.GetPlayerId() });
             this.entityManager.AddComponent<InputProviderTag>(this.providerEntity);
-            
-            // Buffers & State
+
             this.entityManager.AddComponent<InputState>(this.providerEntity);
             this.entityManager.AddBuffer<InputAxisBuffer>(this.providerEntity);
             this.entityManager.AddBuffer<InputHistory>(this.providerEntity);
             this.entityManager.AddBuffer<InputToConditionEvent>(this.providerEntity);
 
-            // Reaction Publisher Requirements
             this.entityManager.AddBuffer<ConditionEvent>(this.providerEntity).Initialize();
             this.entityManager.AddComponent<EventsDirty>(this.providerEntity);
             this.entityManager.SetComponentEnabled<EventsDirty>(this.providerEntity, false);
@@ -81,10 +78,9 @@ namespace Bovinelabs.Timeline.PlayerInputs
         {
             if (this.capturedWorld == null || !this.capturedWorld.IsCreated || !this.entityManager.Exists(this.providerEntity))
             {
-                return; // Failsafe
+                return;
             }
 
-            // 1. Calculate new Held state
             var currentHeld = new InputBitmask();
             foreach (var btn in this.Buttons)
             {
@@ -94,7 +90,6 @@ namespace Bovinelabs.Timeline.PlayerInputs
                 }
             }
 
-            // 2. Fetch previous state and algebraically calculate Down/Up
             var previousHeld = this.entityManager.GetComponentData<InputState>(this.providerEntity).Held;
             
             var newState = new InputState
@@ -104,10 +99,8 @@ namespace Bovinelabs.Timeline.PlayerInputs
                 Up = previousHeld.AndNot(currentHeld)
             };
 
-            // 3. Inject back to ECS
             this.entityManager.SetComponentData(this.providerEntity, newState);
 
-            // 4. Inject Axes
             var axes = this.entityManager.GetBuffer<InputAxisBuffer>(this.providerEntity);
             axes.Clear();
 
@@ -126,7 +119,6 @@ namespace Bovinelabs.Timeline.PlayerInputs
 
         private void OnDisable()
         {
-            // Failsafe: Ensures we don't try to access a destroyed ECS World when exiting Play Mode
             if (this.capturedWorld != null && this.capturedWorld.IsCreated)
             {
                 if (this.entityManager.Exists(this.providerEntity))

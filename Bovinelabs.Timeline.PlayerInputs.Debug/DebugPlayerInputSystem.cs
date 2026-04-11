@@ -24,7 +24,6 @@ namespace Bovinelabs.Timeline.PlayerInputs.Debug
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Use standard unfiltered drawer so it always shows up if Quill is globally active
             var renderer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
 
             var chronos = (uint)(SystemAPI.Time.ElapsedTime * 1000.0);
@@ -49,7 +48,6 @@ namespace Bovinelabs.Timeline.PlayerInputs.Debug
                 in DynamicBuffer<InputAxisBuffer> axes,
                 in DynamicBuffer<InputHistory> history)
             {
-                // Space out multiple local players
                 var origin = new float3(id.Value * 4f, 2f, 0f);
 
                 RenderHeader(origin, id);
@@ -135,7 +133,7 @@ namespace Bovinelabs.Timeline.PlayerInputs.Debug
                     var record = history[i];
                     var delta = chronos - record.Tick;
 
-                    if (delta > 2000) continue; // Fade out history older than 2 seconds
+                    if (delta > 2000) continue;
 
                     var opacity = math.clamp(1f - delta / 2000f, 0f, 1f);
                     var tint = new Color(1f, 1f, 1f, opacity);
