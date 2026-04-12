@@ -24,11 +24,9 @@ namespace Bovinelabs.Timeline.PlayerInputs.Authoring
             {
                 for (byte i = 0; i < settings.Mappings.Count; i++)
                 {
-                    if (settings.Mappings[i].Action == mapping.Action)
-                    {
-                        mask[i] = true;
-                        break;
-                    }
+                    if (settings.Mappings[i].Action != mapping.Action) continue;
+                    mask[i] = true;
+                    break;
                 }
             }
 

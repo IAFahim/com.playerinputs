@@ -7,6 +7,7 @@ using Bovinelabs.Timeline.PlayerInputs.Data;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 
 namespace Bovinelabs.Timeline.PlayerInputs
 {

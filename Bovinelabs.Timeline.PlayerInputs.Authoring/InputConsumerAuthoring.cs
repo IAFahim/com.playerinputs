@@ -12,7 +12,7 @@ namespace Bovinelabs.Timeline.PlayerInputs.Authoring
         {
             public override void Bake(InputConsumerAuthoring authoring)
             {
-                var entity = GetEntity(TransformUsageFlags.Dynamic);
+                var entity = GetEntity(TransformUsageFlags.None);
 
                 AddComponent(entity, new PlayerId { Value = authoring.PlayerId });
                 AddComponent<InputConsumerTag>(entity);

@@ -4,13 +4,17 @@ using BovineLabs.Timeline.Authoring;
 using Bovinelabs.Timeline.PlayerInputs.Data;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Timeline;
+using InputSettings = Bovinelabs.Timeline.PlayerInputs.Data.InputSettings;
 
 namespace Bovinelabs.Timeline.PlayerInputs.Authoring
 {
     public sealed class PlayerInputBufferClearClip : DOTSClip, ITimelineClipAsset
     {
-        public List<InputSettings.InputMapping> ActionsToClear = new();
+        [Tooltip("Zero Means Clear all")]
+        public List<InputActionReference> actionsToClear = new();
 
         public override double duration => 1;
         public ClipCaps clipCaps => ClipCaps.None;
@@ -22,18 +26,16 @@ namespace Bovinelabs.Timeline.PlayerInputs.Authoring
             var builder = new BlobBuilder(Allocator.Temp);
             ref var root = ref builder.ConstructRoot<BlobArray<byte>>();
 
-            if (ActionsToClear.Count > 0)
+            if (actionsToClear.Count > 0)
             {
-                var resolved = new List<byte>(ActionsToClear.Count);
-                foreach (var mapping in ActionsToClear)
+                var resolved = new List<byte>(actionsToClear.Count);
+                foreach (var inputActionReference in actionsToClear)
                 {
                     for (byte i = 0; i < settings.Mappings.Count; i++)
                     {
-                        if (settings.Mappings[i].Action == mapping.Action)
-                        {
-                            resolved.Add(i);
-                            break;
-                        }
+                        if (settings.Mappings[i].Action != inputActionReference) continue;
+                        resolved.Add(i);
+                        break;
                     }
                 }
 

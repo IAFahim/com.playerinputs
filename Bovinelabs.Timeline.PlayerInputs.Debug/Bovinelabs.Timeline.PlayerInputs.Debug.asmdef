@@ -12,7 +12,11 @@
     "Unity.Mathematics",
     "Unity.Transforms",
     "Bovinelabs.Timeline.PlayerInputs",
-    "Bovinelabs.Timeline.PlayerInputs.Data"
+    "Bovinelabs.Timeline.PlayerInputs.Data",
+    "BovineLabs.Essence",
+    "BovineLabs.Essence.Data",
+    "BovineLabs.Reaction.Data",
+    "BovineLabs.Reaction"
   ],
   "includePlatforms": [
     "Editor"
