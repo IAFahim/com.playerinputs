@@ -1,3 +1,4 @@
+using BovineLabs.Core.Authoring.Settings;
 using BovineLabs.Reaction.Authoring.Conditions;
 using BovineLabs.Reaction.Data.Conditions;
 using BovineLabs.Timeline.Authoring;
@@ -19,9 +20,21 @@ namespace Bovinelabs.Timeline.PlayerInputs.Authoring
 
         public override void Bake(Entity clipEntity, BakingContext context)
         {
+            var settings = AuthoringSettingsUtility.GetSettings<InputSettings>();
+            byte actionId = 0;
+            
+            for (byte i = 0; i < settings.Mappings.Count; i++)
+            {
+                if (settings.Mappings[i].Action == Action.Action)
+                {
+                    actionId = i;
+                    break;
+                }
+            }
+
             context.Baker.AddComponent(clipEntity, new InputInvokerConfig
             {
-                ActionId = Action.Value,
+                ActionId = actionId,
                 Phase = Phase,
                 Condition = Condition ? Condition.Key : ConditionKey.Null,
                 Value = Value

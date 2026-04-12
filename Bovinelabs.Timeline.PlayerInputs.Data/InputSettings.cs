@@ -16,13 +16,14 @@ namespace Bovinelabs.Timeline.PlayerInputs.Data
         {
             get
             {
-                foreach (var mapping in mappings)
+                for (byte index = 0; index < mappings.Length; index++)
                 {
+                    var mapping = mappings[index];
                     var actionName = mapping.Action != null && mapping.Action.action != null
                         ? mapping.Action.action.name
-                        : $"[Unassigned Action ID: {mapping.Value}]";
+                        : $"[Unassigned Action ID: {index}]";
 
-                    yield return new NameValue<byte>(actionName, mapping.Value);
+                    yield return new NameValue<byte>(actionName, index);
                 }
             }
         }
@@ -32,9 +33,6 @@ namespace Bovinelabs.Timeline.PlayerInputs.Data
         [Serializable]
         public struct InputMapping
         {
-            [Tooltip("The ECS byte ID used under the hood.")]
-            public byte Value;
-
             [Tooltip("The Unity Input Action to bind to this ID. The name is extracted automatically.")]
             public InputActionReference Action;
         }

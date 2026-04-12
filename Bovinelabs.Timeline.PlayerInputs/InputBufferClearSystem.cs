@@ -1,3 +1,4 @@
+// InputBufferClearSystem.cs
 using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Timeline;
@@ -19,7 +20,7 @@ namespace Bovinelabs.Timeline.PlayerInputs
         public void OnCreate(ref SystemState state)
         {
             this.sources = state.GetUnsafeComponentLookup<InputSource>(true);
-            this.histories = state.GetUnsafeBufferLookup<InputHistory>(false); // Read/Write
+            this.histories = state.GetUnsafeBufferLookup<InputHistory>(false);
         }
 
         [BurstCompile]
@@ -27,11 +28,10 @@ namespace Bovinelabs.Timeline.PlayerInputs
         {
             this.sources.Update(ref state);
             this.histories.Update(ref state);
-
             state.Dependency = new ClearBufferTransition
             {
                 Sources = this.sources,
-                Histories = this.histories
+                Histories = this.histories,
             }.ScheduleParallel(state.Dependency);
         }
 
@@ -46,21 +46,27 @@ namespace Bovinelabs.Timeline.PlayerInputs
             private void Execute(in InputBufferClearTrigger config, in TrackBinding binding)
             {
                 var consumer = binding.Value;
-
                 if (!this.Sources.TryGetComponent(consumer, out var source) || source.Provider == Entity.Null) return;
                 if (!this.Histories.TryGetBuffer(source.Provider, out var history)) return;
 
-                if (config.ClearAll)
+                ref var actionIds = ref config.ActionIds.Value;
+
+                // Empty blob = clear all
+                if (actionIds.Length == 0)
                 {
                     history.Clear();
+                    return;
                 }
-                else
+
+                for (var i = history.Length - 1; i >= 0; i--)
                 {
-                    for (var i = history.Length - 1; i >= 0; i--)
+                    var historyActionId = history[i].ActionId;
+                    for (var j = 0; j < actionIds.Length; j++)
                     {
-                        if (history[i].ActionId == config.ActionId)
+                        if (historyActionId == actionIds[j])
                         {
                             history.RemoveAt(i);
+                            break;
                         }
                     }
                 }

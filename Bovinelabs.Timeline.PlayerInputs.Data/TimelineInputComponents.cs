@@ -14,8 +14,7 @@ namespace Bovinelabs.Timeline.PlayerInputs.Data
 
     public struct InputBufferClearTrigger : IComponentData, IEnableableComponent
     {
-        public bool ClearAll;
-        public byte ActionId;
+        public BlobAssetReference<BlobArray<byte>> ActionIds;
     }
 
     public struct InputCancelWindowConfig : IComponentData

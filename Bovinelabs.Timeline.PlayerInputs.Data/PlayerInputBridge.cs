@@ -28,8 +28,9 @@ namespace Bovinelabs.Timeline.PlayerInputs.Data
             var inputKeys = InputSettings.I;
             if (inputKeys == null || inputKeys.Mappings.Count == 0) return;
 
-            foreach (var mapping in inputKeys.Mappings)
+            for (byte i = 0; i < inputKeys.Mappings.Count; i++)
             {
+                var mapping = inputKeys.Mappings[i];
                 if (mapping.Action == null || mapping.Action.action == null) continue;
 
                 var action = playerInput.actions.FindAction(mapping.Action.action.id);
@@ -38,10 +39,10 @@ namespace Bovinelabs.Timeline.PlayerInputs.Data
                 switch (action.type)
                 {
                     case InputActionType.Button:
-                        _buttons.Add((mapping.Value, action));
+                        _buttons.Add((i, action)); // Use 'i' as the ID
                         break;
                     case InputActionType.Value:
-                        _axes.Add((mapping.Value, action));
+                        _axes.Add((i, action));    // Use 'i' as the ID
                         break;
                 }
             }
