@@ -135,7 +135,7 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
 
         public override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj) || obj is PlayerInputBridgeComponent other && Equals(other);
+            return ReferenceEquals(this, obj) || (obj is PlayerInputBridgeComponent other && Equals(other));
         }
 
         public override int GetHashCode()
