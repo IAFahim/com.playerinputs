@@ -16,41 +16,29 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
         internal readonly List<(byte Id, InputAction Action)> Axes = new();
         internal readonly List<(byte Id, InputAction Action)> Buttons = new();
 
+        public BitArray256 CurrentHeld;
+        public List<InputAxisBuffer> CurrentAxes = new();
+
         private World capturedWorld;
         private EntityManager entityManager;
         private Entity providerEntity;
 
         private void Update()
         {
-            if (capturedWorld == null || !capturedWorld.IsCreated || !entityManager.Exists(providerEntity)) return;
-
-            var currentHeld = new BitArray256();
+            CurrentHeld = new BitArray256();
             foreach (var btn in Buttons)
                 if (btn.Action.IsPressed())
-                    currentHeld[btn.Id] = true;
+                    CurrentHeld[btn.Id] = true;
 
-            var previousHeld = entityManager.GetComponentData<InputState>(providerEntity).Held;
-
-            // S-Tier Core optimization: Native Bitwise calculations without branching
-            var newState = new InputState
-            {
-                Down = currentHeld.BitAnd(previousHeld.BitNot()),
-                Held = currentHeld,
-                Up = previousHeld.BitAnd(currentHeld.BitNot())
-            };
-
-            entityManager.SetComponentData(providerEntity, newState);
-
-            var axes = entityManager.GetBuffer<InputAxisBuffer>(providerEntity);
-            axes.Clear();
-
+            CurrentAxes.Clear();
             foreach (var axis in Axes)
             {
                 var val = axis.Action.expectedControlType == "Vector2"
                     ? axis.Action.ReadValue<float2>()
                     : new float2(axis.Action.ReadValue<float>(), 0f);
 
-                if (math.lengthsq(val) > 0.0001f) axes.Add(new InputAxisBuffer { ActionId = axis.Id, Value = val });
+                if (math.lengthsq(val) > 0.0001f) 
+                    CurrentAxes.Add(new InputAxisBuffer { ActionId = axis.Id, Value = val });
             }
         }
 
@@ -89,7 +77,7 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
 
             entityManager.AddComponentData(providerEntity, new PlayerId { Value = GetPlayerId() });
             entityManager.AddComponent<InputProviderTag>(providerEntity);
-            entityManager.AddComponentData(providerEntity, new PlayerInputBridgeComponent { Value = this });
+            entityManager.AddComponentObject(providerEntity, new PlayerInputBridgeComponent { Value = this });
 
             entityManager.AddComponent<InputState>(providerEntity);
             entityManager.AddBuffer<InputAxisBuffer>(providerEntity);
@@ -109,6 +97,8 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
 
             Buttons.Clear();
             Axes.Clear();
+            CurrentAxes.Clear();
+            CurrentHeld = new BitArray256();
         }
 
         public byte GetPlayerId()

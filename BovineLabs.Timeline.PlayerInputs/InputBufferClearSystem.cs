@@ -1,5 +1,3 @@
-// InputBufferClearSystem.cs
-
 using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Timeline.Data;
@@ -32,7 +30,7 @@ namespace BovineLabs.Timeline.PlayerInputs
             {
                 Sources = sources,
                 Histories = histories
-            }.ScheduleParallel(state.Dependency);
+            }.Schedule(state.Dependency);
         }
 
         [BurstCompile]
@@ -41,7 +39,7 @@ namespace BovineLabs.Timeline.PlayerInputs
         private partial struct ClearBufferTransition : IJobEntity
         {
             [ReadOnly] public UnsafeComponentLookup<InputSource> Sources;
-            [NativeDisableParallelForRestriction] public UnsafeBufferLookup<InputHistory> Histories;
+            public UnsafeBufferLookup<InputHistory> Histories;
 
             private void Execute(in InputBufferClearTrigger config, in TrackBinding binding)
             {
@@ -51,7 +49,6 @@ namespace BovineLabs.Timeline.PlayerInputs
 
                 ref var actionIds = ref config.ActionIds.Value;
 
-                // Empty blob = clear all
                 if (actionIds.Length == 0)
                 {
                     history.Clear();

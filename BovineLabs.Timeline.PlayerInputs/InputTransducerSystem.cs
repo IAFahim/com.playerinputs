@@ -26,14 +26,14 @@ namespace BovineLabs.Timeline.PlayerInputs
             state.Dependency = new TransduceJob
             {
                 Writers = eventWriterLookup
-            }.ScheduleParallel(state.Dependency);
+            }.Schedule(state.Dependency);
         }
 
         [BurstCompile]
         [WithAll(typeof(InputProviderTag))]
         private partial struct TransduceJob : IJobEntity
         {
-            [NativeDisableParallelForRestriction] public ConditionEventWriter.Lookup Writers;
+            public ConditionEventWriter.Lookup Writers;
 
             private void Execute(Entity entity, in InputState state,
                 in DynamicBuffer<InputToConditionEvent> transducers)
