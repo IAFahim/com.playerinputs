@@ -28,16 +28,22 @@ namespace BovineLabs.Timeline.PlayerInputs
                 if (state.Down.AllFalse && state.Up.AllFalse) return;
 
                 for (byte i = 0; i < 255; i++)
+                {
                     if (state.Down[i])
                     {
-                        if (history.Length >= history.Capacity) history.RemoveAt(0);
-                        history.Add(new InputHistory { ActionId = i, Phase = InputPhase.Down, Tick = Tick });
+                        AddHistory(history, new InputHistory { ActionId = i, Phase = InputPhase.Down, Tick = Tick });
                     }
                     else if (state.Up[i])
                     {
-                        if (history.Length >= history.Capacity) history.RemoveAt(0);
-                        history.Add(new InputHistory { ActionId = i, Phase = InputPhase.Up, Tick = Tick });
+                        AddHistory(history, new InputHistory { ActionId = i, Phase = InputPhase.Up, Tick = Tick });
                     }
+                }
+            }
+
+            private void AddHistory(DynamicBuffer<InputHistory> history, InputHistory entry)
+            {
+                if (history.Length >= history.Capacity) history.RemoveAt(0);
+                history.Add(entry);
             }
         }
     }
