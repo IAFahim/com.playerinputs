@@ -12,9 +12,12 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
     [RequireComponent(typeof(PlayerInput))]
     public sealed class PlayerInputBridge : MonoBehaviour
     {
-        public int playerIdOverride = -1;
-        private readonly List<(byte Id, InputAction Action)> _axes = new();
-        private readonly List<(byte Id, InputAction Action)> _buttons = new();
+        public int PlayerIdOverride = -1;
+        internal readonly List<(byte Id, InputAction Action)> Axes = new();
+        internal readonly List<(byte Id, InputAction Action)> Buttons = new();
+
+        public BitArray256 CurrentHeld;
+        public List<InputAxisBuffer> CurrentAxes = new();
 
         private World capturedWorld;
         private EntityManager entityManager;
@@ -22,35 +25,27 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
 
         private void Update()
         {
-            if (capturedWorld == null || !capturedWorld.IsCreated || !entityManager.Exists(providerEntity)) return;
-
-            var currentHeld = new BitArray256();
-            foreach (var btn in _buttons)
+            CurrentHeld = new BitArray256();
+            foreach (var btn in Buttons)
                 if (btn.Action.IsPressed())
-                    currentHeld[btn.Id] = true;
+                    CurrentHeld[btn.Id] = true;
 
-            var previousHeld = entityManager.GetComponentData<InputState>(providerEntity).Held;
-
-            // S-Tier Core optimization: Native Bitwise calculations without branching
-            var newState = new InputState
+            CurrentAxes.Clear();
+            foreach (var axis in Axes)
             {
-                Down = currentHeld.BitAnd(previousHeld.BitNot()),
-                Held = currentHeld,
-                Up = previousHeld.BitAnd(currentHeld.BitNot())
-            };
+                float2 val;
+                if (axis.Action.expectedControlType == "Vector2")
+                {
+                    var v2 = axis.Action.ReadValue<UnityEngine.Vector2>();
+                    val = new float2(v2.x, v2.y);
+                }
+                else
+                {
+                    val = new float2(axis.Action.ReadValue<float>(), 0f);
+                }
 
-            entityManager.SetComponentData(providerEntity, newState);
-
-            var axes = entityManager.GetBuffer<InputAxisBuffer>(providerEntity);
-            axes.Clear();
-
-            foreach (var axis in _axes)
-            {
-                var val = axis.Action.expectedControlType == "Vector2"
-                    ? axis.Action.ReadValue<Vector2>()
-                    : new Vector2(axis.Action.ReadValue<float>(), 0f);
-
-                if (math.lengthsq(val) > 0.0001f) axes.Add(new InputAxisBuffer { ActionId = axis.Id, Value = val });
+                if (math.lengthsq(val) > 0.0001f)
+                    CurrentAxes.Add(new InputAxisBuffer { ActionId = axis.Id, Value = val });
             }
         }
 
@@ -60,22 +55,23 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
             if (playerInput.actions == null) return;
 
             var inputKeys = InputSettings.I;
+            if (inputKeys == null || inputKeys.InputActionReferences.Count == 0) return;
 
-            for (byte i = 0; i < inputKeys.InputActionReferences.Count; i++)
+            for (byte index = 0; index < inputKeys.InputActionReferences.Count; index++)
             {
-                var inputActionReference = inputKeys.InputActionReferences[i];
-                if (inputActionReference == null || inputActionReference.action == null) continue;
+                var mapping = inputKeys.InputActionReferences[index];
+                if (mapping == null || mapping.action == null) continue;
 
-                var action = playerInput.actions.FindAction(inputActionReference.action.id);
+                var action = playerInput.actions.FindAction(mapping.action.id);
                 if (action == null) continue;
 
                 switch (action.type)
                 {
                     case InputActionType.Button:
-                        _buttons.Add((i, action)); // Use 'i' as the ID
+                        Buttons.Add((index, action));
                         break;
                     case InputActionType.Value:
-                        _axes.Add((i, action)); // Use 'i' as the ID
+                        Axes.Add((index, action));
                         break;
                 }
             }
@@ -88,7 +84,7 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
 
             entityManager.AddComponentData(providerEntity, new PlayerId { Value = GetPlayerId() });
             entityManager.AddComponent<InputProviderTag>(providerEntity);
-            entityManager.AddComponentData(providerEntity, new PlayerInputBridgeComponent { Value = this });
+            entityManager.AddComponentObject(providerEntity, new PlayerInputBridgeComponent { Value = this });
 
             entityManager.AddComponent<InputState>(providerEntity);
             entityManager.AddBuffer<InputAxisBuffer>(providerEntity);
@@ -106,14 +102,16 @@ namespace BovineLabs.Timeline.PlayerInputs.Data
             if (capturedWorld != null && capturedWorld.IsCreated && entityManager.Exists(providerEntity))
                 entityManager.DestroyEntity(providerEntity);
 
-            _buttons.Clear();
-            _axes.Clear();
+            Buttons.Clear();
+            Axes.Clear();
+            CurrentAxes.Clear();
+            CurrentHeld = new BitArray256();
         }
 
         public byte GetPlayerId()
         {
-            return playerIdOverride >= 0
-                ? (byte)playerIdOverride
+            return PlayerIdOverride >= 0
+                ? (byte)PlayerIdOverride
                 : (byte)(GetComponent<PlayerInput>()?.playerIndex ?? 0);
         }
     }
