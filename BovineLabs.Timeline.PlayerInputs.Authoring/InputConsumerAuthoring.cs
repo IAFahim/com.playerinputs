@@ -22,14 +22,15 @@ namespace BovineLabs.Timeline.PlayerInputs.Authoring
 
                 if (authoring.routeEventsTo != null)
                 {
-                    var root = authoring.transform.root.GetComponentInChildren<EntityLinkRootAuthoring>();
-                    if (root != null)
+                    if (authoring.transform.root.TryGetComponent<EntityLinkRootAuthoring>(out var root))
+                    {
                         foreach (var link in root.Links)
                             if (link.Schema == authoring.routeEventsTo && link.Target != null)
                             {
                                 targetEntity = GetEntity(link.Target, TransformUsageFlags.None);
                                 break;
                             }
+                    }
                 }
 
                 var commands = new BakerCommands(this, entity);
